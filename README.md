@@ -107,6 +107,68 @@ visa_other: The number of students with other types of Visas.
 
 
 
+## Data Cleaning 🧹
+
+For this project, I have used R studio to clean, analyze and visualize the data. These are the steps I followed to clean the data:
+
+- Narrowed the data to only the last century as there were too many missing values in the last century
+- Changed the year column form the academic year to only the year
+- Removed duplicates
+- Get rid of NA values
+- After that the data was cleaned, and I didnt have to spend too much time to clean it as the datasets were almost cleaned from 2000 to 2022
+```
+##Cleaning academic data (changing the academic year to the year)
+academic_data_clean <- academic_data %>%
+  rename_all(tolower) %>%
+  mutate(year = str_sub(year, 1, 4) %>% as.numeric())  #Extract start year as integer
+
+any(duplicated(academic_data_clean)) #no duplicates
+
+
+##Cleaning academic detail data (changing the academic year to the year)
+academic_detail_data_clean <- academic_detail_data %>%
+  rename_all(tolower) %>%
+  mutate(year = str_sub(year, 1, 4) %>% as.numeric())
+
+any(duplicated(academic_detail_data_clean)) #no duplicates
+
+
+##Cleaning field of study data (changing the academic year to the year)
+field_of_study_data_clean <- field_of_study_data %>%
+  rename_all(tolower) %>%
+  mutate(year = str_sub(year, 1, 4) %>% as.numeric())
+
+any(duplicated(field_of_study_data_clean)) #no duplicates
+
+field_of_study_data_clean <- field_of_study_data_clean %>%
+  filter(!is.na(students)) #removing NA
+
+
+
+##Cleaning origin data (changing the academic year to the year)
+origin_data_clean <- origin_data %>%
+  rename_all(tolower) %>%
+  mutate(year = str_sub(year, 1, 4) %>% as.numeric())
+
+any(duplicated(field_of_study_data_clean)) #no duplicates
+
+
+##Cleaning source of fund data (changing the academic year to the year)
+source_of_fund_data_clean <- source_of_fund_data %>%
+  rename_all(tolower) %>%
+  mutate(year = str_sub(year, 1, 4) %>% as.numeric())
+
+any(duplicated(source_of_fund_data_clean)) #no duplicates
+
+
+##Cleaning status data (changing the academic year to the year)
+status_data_clean <- status_data %>%
+  rename_all(tolower) %>%
+  mutate(year = str_sub(year, 1, 4) %>% as.numeric())
+
+any(duplicated(source_of_fund_data_clean)) #no duplicates
+```
+
 
 
 
