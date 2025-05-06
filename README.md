@@ -171,7 +171,67 @@ any(duplicated(source_of_fund_data_clean)) #no duplicates
 
 
 
+## Data Merging 🔗
 
+- Combined academic_data_clean and status_data_clean by year to bring together enrollment data with visa type, gender, and student status (full-time/part-time).
+
+- Grouped and summarized origin_data_clean by year and continent, transforming regional origin data into a higher-level continent view for trend analysis.
+
+- Extracted OPT participation trends from academic_detail_data_clean by filtering for academic_type == "OPT" and grouping by academic level (e.g., Bachelor's, Master's).
+
+- Identified top fields of study across all students using field_of_study_data_clean, grouped by year to observe longitudinal popularity trends.
+
+- Summarized OPT funding sources from source_of_fund_data_clean, highlighting how OPT students support their stay in the U.S. (e.g., through employment, personal funds).
+```
+#DATA MERGING
+
+##Merge status_data_clean into academic_data_clean by year 
+combined_data <- academic_data_clean %>%
+  left_join(status_data_clean, by = "year") #This will bring in gender, visa type, and full-time/part-time status.
+
+
+##Merge in summarized origin_data_clean by year
+origin_summary <- origin_data_clean %>%
+  mutate(year = str_sub(year, 1, 4) %>% as.numeric()) %>%
+  mutate(continent = case_when(
+    origin_region %in% c("East Asia", "South and Central Asia", "Southeast Asia", "Central Asia", "Asia") ~ "Asia",
+    origin_region %in% c("North Africa", "West Africa", "East Africa", "Central Africa", "Southern Africa", "Africa, Subsaharan", "Africa") ~ "Africa",
+    origin_region %in% c("North America") ~ "North America",
+    origin_region %in% c("South America") ~ "South America",
+    origin_region %in% c("Oceania") ~ "Oceania",
+    origin_region %in% c("Europe") ~ "Europe",
+    origin_region == "Stateless" ~ "Stateless",
+    origin_region %in% c("Middle East", "Mexico and Central America", "Caribbean", "Latin America and Caribbean") ~ "Other",
+    TRUE ~ "Other"
+  )) %>%
+  group_by(year, continent) %>%
+  summarise(origin_students = sum(students, na.rm = TRUE)) %>%
+  ungroup()  #Continent-level info over time. Let's summarize by origin_region.
+
+
+##Get OPT data by level from academic_detail_data_clean
+opt_by_level <- academic_detail_data_clean %>%
+  filter(academic_type == "OPT") %>%
+  group_by(year, academic_level) %>%
+  summarise(opt_students = sum(students, na.rm = TRUE)) %>%
+  ungroup()  #I want to find how many students use their OPT
+
+
+##Get top OPT fields from field_of_study_data_clean
+top_fields_by_year <- field_of_study_data_clean %>%
+  group_by(year, field_of_study) %>%
+  summarise(total_students = sum(students, na.rm = TRUE)) %>%
+  arrange(desc(total_students)) %>%
+  ungroup()  #relevant major for ALL students
+
+
+##Get OPT funding from source_of_fund_data_clean
+opt_funding_summary <- source_of_fund_data_clean %>%
+  filter(academic_type == "OPT") %>%
+  group_by(year, source_of_fund) %>%
+  summarise(opt_fund_students = sum(students, na.rm = TRUE)) %>%
+  ungroup()
+```
 
 
 
