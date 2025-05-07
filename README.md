@@ -569,3 +569,44 @@ Findings:
 
 - This insight helps schools anticipate which fields may need flexible resource allocation based on changing student demand.
 
+```
+#Create a Field Stability Index 
+#It’s a way of measuring how volatile each field of study has been between 2000 and 2022 using a metric called the coefficient of variation (CV).
+#Why it is useful:
+#-Fields with a low CV had steady, predictable numbers over the years (stable interest).
+#-Fields with a high CV had big ups and downs, like booms and busts (maybe trend-driven).
+
+field_stability <- field_of_study_data_clean %>%
+  filter(year >= 2000) %>%
+  group_by(field_of_study) %>%
+  summarise(
+    avg_students = mean(students, na.rm = TRUE),
+    sd_students = sd(students, na.rm = TRUE),
+    cv = sd_students / avg_students  # Coefficient of Variation
+  ) %>%
+  arrange(desc(cv))
+
+#Top 10 most unstable fields (highest CV)
+top_unstable <- field_stability %>%
+  slice_max(cv, n = 10)
+
+ggplot(top_unstable, aes(x = reorder(field_of_study, cv), y = cv)) +
+  geom_col(fill = "firebrick") +
+  coord_flip() +
+  labs(
+    title = "Top 10 Most Volatile Fields of Study (2000–2022)",
+    x = "Field of Study", y = "Coefficient of Variation",
+    subtitle = "Fields with the most fluctuation in international student numbers"
+  ) +
+  theme_minimal()
+```
+
+## Recommendations 
+
+- Policy makers should continue supporting STEM OPT extensions, as demand in these fields is high and growing.
+
+- Universities might consider investing more in Legal Studies or Social Sciences programs aimed at international audiences.
+
+- Universities should adjust recruitment strategies and academic investment to focus on these emerging high-growth areas (Legal Studies and Math & Computer Science) --> Expanding industry partnerships for internships and OPT placements
+
+
