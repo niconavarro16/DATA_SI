@@ -471,4 +471,6 @@ ggplot(top_growth, aes(x = reorder(field_of_study, growth_rate), y = growth_rate
 
 ### 6.	What fields of study follow a similar trend pattern?
 
+<img src="TopHiddenFields.png" height = 350, width = 600>
+
 
