@@ -9,7 +9,7 @@ The goal of this project is to analyze international student trends in the Unite
 4.	Which academic areas are driving OPT (Optional Practical Training) participation?
 5.	What hidden trends exist in terms of field growth, volatility, or shifts in student preferences?
 6.	What fields of study follow a similar trend pattern?
-7.	Which are the msot unstable or volatile fields of study among international students?
+7.	Which are the most unstable or volatile fields of study among international students?
 
 
 
@@ -472,5 +472,100 @@ ggplot(top_growth, aes(x = reorder(field_of_study, growth_rate), y = growth_rate
 ### 6.	What fields of study follow a similar trend pattern?
 
 <img src="TopHiddenFields.png" height = 350, width = 600>
+<img src="cluster_table.png" height = 350, width = 300>
 
+- K-means clustering was applied to group academic fields by the shape of their trend in international student enrollment between 2000 and 2022.
+
+- Each small chart (Cluster 1–4) represents a group of fields that followed similar growth behavior, regardless of their size.
+
+Key insights:
+
+- Cluster 1: Stable or gently increasing fields (e.g., Education, Health Professions, Humanities).
+
+- Cluster 2: Strong, sustained growth — includes most STEM fields like Engineering and Computer Science.
+
+- Cluster 3: Declining interest over time — like Undeclared or Intensive English programs.
+
+- Cluster 4: Sharp rise followed by steep drop — especially notable for fields like Legal Studies.
+
+```
+#preparing the data --> We’ll use field_of_study_data_clean and pivot it so each field is a row, and each year is a column.
+#Create wide-format dataset: one row per field, one column per year
+field_trends_wide <- field_of_study_data_clean %>%
+  filter(year >= 2000) %>%
+  group_by(field_of_study, year) %>%
+  summarise(students = sum(students, na.rm = TRUE)) %>%
+  pivot_wider(names_from = year, values_from = students, values_fill = 0)
+
+#Normalize the data --> This step ensures we cluster by shape of trend, not magnitude.
+#Normalize student counts per field (row-wise)
+# Normalize each row by its max value manually
+field_trends_scaled <- field_trends_wide %>%
+  column_to_rownames("field_of_study") %>%
+  as.matrix()
+
+#Divide each row by its max
+field_trends_scaled <- t(apply(field_trends_scaled, 1, function(x) x / max(x, na.rm = TRUE)))
+
+#Run k-means
+set.seed(42)
+kmeans_result <- kmeans(field_trends_scaled, centers = 4)
+clusters <- kmeans_result$cluster
+
+
+#Convert matrix back to data frame and add rownames (field names)
+library(tibble)
+field_trends_long <- as.data.frame(field_trends_scaled) %>%
+  rownames_to_column("field_of_study") %>%
+  pivot_longer(
+    cols = -field_of_study,
+    names_to = "year",
+    values_to = "normalized"
+  ) %>%
+  mutate(
+    year = as.numeric(year),
+    cluster = factor(clusters[field_of_study])
+  )
+
+
+#Plot the time series for each cluster
+ggplot(field_trends_long, aes(x = year, y = normalized, group = field_of_study)) +
+  geom_line(alpha = 0.5, color = "steelblue") +
+  facet_wrap(~ cluster, ncol = 2) +
+  labs(
+    title = "Clusters of Fields of Study with Similar Growth Patterns (2000–2022)",
+    subtitle = "Grouped by trend shape using k-means clustering (normalized)",
+    x = "Year", y = "Normalized Student Count"
+  ) +
+  theme_minimal()
+
+#For Knowing WHICH FIELDS are in each group
+clustered_fields <- data.frame(
+  field_of_study = names(clusters),
+  cluster = clusters        #GET THE TABLE FROM clustered_fields !!!!!!!!!!!!!!!
+)
+```
+
+### 7.	Which are the most unstable or volatile fields of study among international students?
+
+<img src="TopVolatileFields.png" height = 350, width = 600>
+
+Calculation:
+- I calculated the Coefficient of Variation (CV) for each field of study:
+
+CV = Standard Deviation / Mean
+
+- This tells us how much a field’s enrollment fluctuated over time relative to its average.
+
+Meaning:
+- High CV = The field had large fluctuations — it may be influenced by global trends, policy changes, or sudden spikes in interest.
+
+- Low CV = The field was stable and consistently attracted students.
+
+Findings:
+- Engineering had the most volatile student trends — growing fast but also fluctuating.
+
+- Fields like Social Sciences and Health Professions also showed notable instability.
+
+- This insight helps schools anticipate which fields may need flexible resource allocation based on changing student demand.
 
