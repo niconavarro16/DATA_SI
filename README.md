@@ -237,15 +237,118 @@ opt_funding_summary <- source_of_fund_data_clean %>%
 
 ## Data Visualization 📊
 
- 1.	How does international student enrollment compare to U.S. student enrollment?
+ ### 1.	How does international student enrollment compare to U.S. student enrollment?
 
 <img src="USvsIntl_students.png" height = 350, width = 600>
 
-<img src="USvsIntl_students.png" height = 350, width = 600>
+<img src="Intl_students_growth.png" height = 350, width = 600>
 
-- International student enrollment has consistently grown, but remains a small fraction compared to the total U.S. student population.
+- The first graph compares U.S. vs. international student enrollment from 2000–2022, showing that while international students are a small percentage, their presence has been steadily increasing.
 
-- U.S. student enrollment peaked around 2015–2017, followed by a slight decline, while international student numbers remained relatively steady.
+- The second graph isolates the international student trend, highlighting sharp growth between 2010 and 2017, a drop during the pandemic (2020), and signs of recovery afterward.
 
-- Despite the gap, the red line (intl_students) shows steady growth from 2000 to 2016, indicating rising interest in U.S. education globally.
+- The COVID-19 pandemic caused a visible dip in international enrollment, but the upward trend resumed by 2022.
 
+```
+##Line Plot — U.S. vs International Students
+#New column for international students
+us_vs_intl_comparison <- combined_data %>%
+  filter(year >= 1975) %>%
+  select(year, us_students, students) %>%
+  pivot_longer(cols = c(us_students, students), names_to = "student_type", values_to = "count")
+
+#Changing the names
+us_vs_intl_comparison$student_type <- recode(us_vs_intl_comparison$student_type,
+                                             "students" = "intl_students",
+                                             "us_students" = "us_students")
+
+#US vs Intl Plot
+ggplot(us_vs_intl_comparison, aes(x = year, y = count, color = student_type)) +
+  geom_line(linewidth = 1.2) +  #Use linewidth instead of size (to avoid warning)
+  scale_color_manual(values = c("us_students" = "steelblue", "intl_students" = "firebrick")) +
+  labs(
+    title = "US vs International Students in the U.S. (2000–2022)",
+    x = "Year", y = "Number of Students", color = "Student Type"
+  ) +
+  theme_minimal() + scale_y_continuous(labels = scales::comma)
+
+#Intl plot
+ggplot(combined_data %>% filter(year >= 1975), aes(x = year, y = students)) +
+  geom_line(color = "firebrick", linewidth = 1.2) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Growth of International Students in the U.S. (2000–2022)",
+    x = "Year", y = "Number of International Students"
+  ) +
+  theme_minimal()
+```
+
+
+### 2.	From which continents do most international students come from?
+<img src="continents_map.png" height = 350, width = 600>
+
+- Asia dominates international student presence in the U.S., with over 748,000 students in 2022 — more than all other continents combined.
+
+- Africa and Europe follow with 57,000 and 89,000 students respectively, showing moderate representation.
+
+- The logarithmic scale helps make smaller contributions from continents like Oceania and South America visible despite Asia’s overwhelming dominance.
+
+```
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
+
+##Get world continent geometries
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+#Add a continent column
+continent_map <- world %>%
+  group_by(continent) %>%
+  summarise(geometry = st_union(geometry)) %>%
+  ungroup()
+
+#Prepare data from origin_summary
+#Use only the most recent year (2022)
+continent_students <- origin_summary %>%
+  filter(year == max(year)) %>%
+  group_by(continent) %>%
+  summarise(origin_students = sum(origin_students, na.rm = TRUE))
+
+#Merge map with student data
+continent_map_merged <- continent_map %>%
+  left_join(continent_students, by = "continent")
+
+#Calculate a centroid (midpoint) for each continent
+library(sf)
+library(scales)
+label_data <- continent_map_merged %>%
+  st_centroid() %>%
+  cbind(st_coordinates(.)) %>%
+  mutate(label = format(origin_students, big.mark = ",", scientific = FALSE))
+
+
+
+#Plot the worldmap
+ggplot(continent_map_merged) +
+  geom_sf(aes(fill = log10(origin_students + 1))) +
+  scale_fill_gradient(
+    low = "#e5f5e0",
+    high = "#238b45",
+    labels = function(x) format(10^x, big.mark = ",", scientific = FALSE),
+    name = "Number of Students (log10)"
+  ) +
+  geom_text(
+    data = label_data,
+    aes(x = X, y = Y, label = label),
+    color = "black",
+    size = 3,
+    fontface = "bold"
+  ) +
+  labs(
+    title = "International Students in the U.S. by Continent (2022)",
+    fill = "Number of Students (log10)"
+  ) +
+  theme_minimal()
+```
+
+3.	Which fields of study are the most common among international students?
