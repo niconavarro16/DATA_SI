@@ -420,12 +420,55 @@ ggplot(opt_levels, aes(x = year, y = opt_students, color = academic_level)) +
 ### 5.	What hidden trends exist in terms of field growth, volatility, or shifts in student preferences?
 
 <img src="TopHiddenFields.png" height = 350, width = 600>
-<img src="TopHiddenFields.png" height = 350, width = 600>
+<img src="hidden_trends_table.png" height = 350, width = 600>
 
-📊 The chart highlights the fields with the highest growth rates in international student enrollment between 2000 and 2022, based on percentage increase.
+- The chart highlights the fields with the highest growth rates in international student enrollment between 2000 and 2022, based on percentage increase.
 
-🥇 Math and Computer Science experienced the highest growth (~254%), driven by high global demand and STEM-OPT eligibility.
+- Math and Computer Science experienced the highest growth (~254%), driven by high global demand and STEM-OPT eligibility.
 
-⚖️ Legal Studies and Law Enforcement is the second-fastest growing field (~149%) — a surprising and often overlooked trend suggesting rising international interest in U.S. law-related programs.
+- Legal Studies and Law Enforcement is the second-fastest growing field (~149%) — a surprising and often overlooked trend suggesting rising international interest in U.S. law-related programs.
 
-📉 In contrast, fields like Intensive English, Humanities, and Undeclared showed negative growth, likely due to shifts in visa policies and employment opportunities.
+- In contrast, fields like Intensive English, Humanities, and Undeclared showed negative growth, likely due to shifts in visa policies and employment opportunities.
+
+```
+#(Hidden trend)
+#Field that is growing fast that is not top 5
+field_growth <- field_of_study_data_clean %>%
+  filter(year %in% c(2000, 2022)) %>%
+  group_by(field_of_study, year) %>%
+  summarise(students = sum(students, na.rm = TRUE)) %>%
+  pivot_wider(names_from = year, values_from = students, names_prefix = "year_") %>%
+  mutate(growth_rate = (year_2022 - year_2000) / year_2000 * 100) %>%
+  arrange(desc(growth_rate)) %>%
+  filter(!is.na(growth_rate), year_2000 > 1000)  #Here we see how Law is actually rising and we didn't know!
+
+
+
+#Top 10 growth fields
+top_growth <- field_growth %>%
+  slice_max(growth_rate, n = 10)
+
+#Plot with Legal Studies in a different color
+ggplot(top_growth, aes(x = reorder(field_of_study, growth_rate), y = growth_rate,
+                       fill = field_of_study == "Legal Studies and Law Enforcement")) +
+  geom_col() +
+  scale_fill_manual(values = c("TRUE" = "firebrick", "FALSE" = "steelblue"), guide = "none") +
+  geom_text(aes(label = round(growth_rate, 1)), hjust = -0.1, size = 3) +
+  coord_flip() +
+  labs(
+    title = "Top 10 Fastest-Growing Fields of Study (2000–2022)",
+    subtitle = "Legal Studies is a fast-growing but often overlooked field",
+    caption = "While STEM fields dominate in absolute numbers, Legal Studies and Law Enforcement show one of the fastest growth rates since 2000, indicating a shifting landscape in international student interests.",
+    x = "Field of Study",
+    y = "Growth Rate (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.caption = element_text(hjust = 0, face = "italic", size = 9),
+    plot.subtitle = element_text(size = 10, face = "bold")
+  )
+```
+
+### 6.	What fields of study follow a similar trend pattern?
+
+
