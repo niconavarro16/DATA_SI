@@ -239,5 +239,13 @@ opt_funding_summary <- source_of_fund_data_clean %>%
 
  1.	How does international student enrollment compare to U.S. student enrollment?
 
-    
+<img src="USvsIntl_students.png" height = 350, width = 600>
+
+<img src="USvsIntl_students.png" height = 350, width = 600>
+
+- International student enrollment has consistently grown, but remains a small fraction compared to the total U.S. student population.
+
+- U.S. student enrollment peaked around 2015–2017, followed by a slight decline, while international student numbers remained relatively steady.
+
+- Despite the gap, the red line (intl_students) shows steady growth from 2000 to 2016, indicating rising interest in U.S. education globally.
 
