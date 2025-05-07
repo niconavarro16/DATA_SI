@@ -237,4 +237,7 @@ opt_funding_summary <- source_of_fund_data_clean %>%
 
 ## Data Visualization 📊
 
+ 1.	How does international student enrollment compare to U.S. student enrollment?
+
+    
 
