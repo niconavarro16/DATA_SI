@@ -351,4 +351,81 @@ ggplot(continent_map_merged) +
   theme_minimal()
 ```
 
-3.	Which fields of study are the most common among international students?
+### 3.	Which fields of study are the most common among international students?
+
+<img src="Top5_fieldsOfStudy.png" height = 350, width = 600>
+
+- Math and Computer Science saw the most dramatic rise, especially after 2010, becoming the top field by 2022.
+
+- Engineering and Business & Management consistently attracted high numbers, though Business saw a decline after 2016.
+
+- Physical and Life Sciences and Social Sciences remained stable but with slower growth, rounding out the top five.
+
+```
+#Identify the top 5 fields overall (based on total students across all years
+top_fields <- field_of_study_data_clean %>%
+  filter(year >= 2000) %>%
+  group_by(field_of_study) %>%
+  summarise(total_students = sum(students, na.rm = TRUE)) %>%
+  arrange(desc(total_students)) %>%
+  slice_head(n = 5) %>%
+  pull(field_of_study)
+
+#Filter the dataset to keep only those top 5
+top_fields_trends <- field_of_study_data_clean %>%
+  filter(year >= 2000, field_of_study %in% top_fields) %>%
+  group_by(year, field_of_study) %>%
+  summarise(total_students = sum(students, na.rm = TRUE)) %>%
+  ungroup()
+
+#Plot a line chart showing how each of those fields changed year by year
+ggplot(top_fields_trends, aes(x = year, y = total_students, color = field_of_study)) +
+  geom_line(size = 1.2) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Top 5 Fields of Study Among International Students in the U.S. (2000–2022)",
+    x = "Year", y = "Number of Intl Students", color = "Field of Study"
+  ) +
+  theme_minimal()
+```
+
+### 4.	Which academic areas are driving OPT (Optional Practical Training) participation?
+
+<img src="OPT_applicants.png" height = 350, width = 600>
+
+- OPT participation rose sharply after 2010, peaking around 2018–2019 before a slight drop and recovery.
+
+- This trend strongly correlates with the growth of STEM fields (Science, Technology, Engineering, and Math), especially Math and Computer Science and Engineering, shown in the previous graph.
+
+- These fields qualify for STEM OPT extensions, which allow international students to work longer in the U.S. after graduation—likely driving the increase in OPT applications.
+
+```
+##Identify which fields of study are likely driving OPT applications, broken down by degree level (undergrad/grad).
+opt_levels <- academic_detail_data_clean %>%
+  filter(academic_type == "OPT", year >= 2000) %>%
+  group_by(year, academic_level) %>%
+  summarise(opt_students = sum(students, na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(opt_levels, aes(x = year, y = opt_students, color = academic_level)) +
+  geom_line(size = 1.2) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "OPT Applicants by Degree Level (2000–2022)",
+    x = "Year", y = "Number of OPT Students", color = "Academic Level"
+  ) +
+  theme_minimal()
+```
+
+### 5.	What hidden trends exist in terms of field growth, volatility, or shifts in student preferences?
+
+<img src="TopHiddenFields.png" height = 350, width = 600>
+<img src="TopHiddenFields.png" height = 350, width = 600>
+
+📊 The chart highlights the fields with the highest growth rates in international student enrollment between 2000 and 2022, based on percentage increase.
+
+🥇 Math and Computer Science experienced the highest growth (~254%), driven by high global demand and STEM-OPT eligibility.
+
+⚖️ Legal Studies and Law Enforcement is the second-fastest growing field (~149%) — a surprising and often overlooked trend suggesting rising international interest in U.S. law-related programs.
+
+📉 In contrast, fields like Intensive English, Humanities, and Undeclared showed negative growth, likely due to shifts in visa policies and employment opportunities.
