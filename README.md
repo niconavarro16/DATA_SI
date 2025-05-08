@@ -1,4 +1,4 @@
-# INTERNATIONAL STUDENTS IN THE U.S.
+# INTERNATIONAL STUDENTS IN THE U.S. 🧑‍🎓🌎
 
 ## Problem Statement and Questions Addressed
 The goal of this project is to analyze international student trends in the United States from 2000 to 2022. As international students play a crucial role in shaping university demographics and labor market dynamics, in this study I will answer the following questions:
@@ -601,7 +601,7 @@ ggplot(top_unstable, aes(x = reorder(field_of_study, cv), y = cv)) +
   theme_minimal()
 ```
 
-## Recommendations 
+## Recommendations 💡
 
 - Policy makers should continue supporting STEM OPT extensions, as demand in these fields is high and growing.
 
